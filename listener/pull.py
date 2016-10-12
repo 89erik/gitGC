@@ -31,13 +31,13 @@ def status():
 
 @app.route("/tree", methods=['GET'])
 def tree():
-    rv = git.tree()
-    return Response(rv["stdout"], mimetype="text/plain")
+    content = git.tree()
+    return Response(content, mimetype="text/plain")
 
 @app.route("/log", methods=['GET'])
 @app.route("/log/<n>", methods=['GET'])
 def getlog(n="500"):
-    log_content = bash.get_log(n)
+    log_content = log.get_lines(n)
     return Response(log_content, mimetype="text/plain")
 
 @app.route('/pull', methods=['POST', 'GET'])
@@ -82,6 +82,7 @@ def try_merge(branch):
         bash.execute(BUILD_SCRIPT)
         git.merge(branch)
     except:
+        log.debug("Exception during merge, starting cleanup")
         git.clean()
         raise
     finally:

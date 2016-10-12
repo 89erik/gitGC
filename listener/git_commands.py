@@ -31,6 +31,7 @@ class Repository(object):
         self.execute(PUSH % self.master)
 
     def delete(self, branch):
+        self.execute(CHECKOUT % self.master)
         self.execute(DELETE_BRANCH_LOCAL % branch)
         self.execute(DELETE_BRANCH_REMOTE % branch)
 
@@ -48,5 +49,5 @@ class Repository(object):
         bash.execute(self.prefix + command, MergeFailure)
         
     def get(self, command):
-        rv = bash.execute_without_log(self.prefix + command)
+        rv = bash.execute_inner(self.prefix + command)
         return rv["stdout"]

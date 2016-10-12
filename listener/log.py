@@ -1,4 +1,5 @@
 from datetime import datetime
+import bash
 
 LOG_FILE = "log"
 indent = 0
@@ -21,3 +22,7 @@ def debug(msg, extra_indent=0):
 
 error = debug
 warning = debug
+
+def get_lines(n):
+    r = bash.execute_inner("tail -n %s %s" % (n, LOG_FILE))
+    return r["stdout"]
