@@ -14,14 +14,14 @@ DELETE_BRANCH_REMOTE = "push origin --delete %s"
 DELETE_BRANCH_LOCAL = "branch -D %s"
 
 class Repository(object):
-    def __init__(self, path):
+    def __init__(self, path, master):
         self.prefix = "git -C %s " % path
-        self.master = "master"
+        self.master = master
 
     def checkout(self, branch):
         self.execute(FETCH)
         self.execute(CHECKOUT % self.master)
-        self.execute(PULL % self.master)
+        self.execute(MERGE % "origin/"+self.master)
         self.execute(CHECKOUT % branch)
         self.execute(MERGE % self.master)
         
@@ -32,8 +32,10 @@ class Repository(object):
 
     def delete(self, branch):
         self.execute(CHECKOUT % self.master)
-        self.execute(DELETE_BRANCH_LOCAL % branch)
-        self.execute(DELETE_BRANCH_REMOTE % branch)
+        try:
+            self.execute(DELETE_BRANCH_LOCAL % branch)
+            self.execute(DELETE_BRANCH_REMOTE % branch)
+        except: pass
 
     def clean(self):
         self.execute(RESET)
