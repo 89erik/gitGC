@@ -4,14 +4,14 @@ set -e
 cd listener
 
 # Install dependencies
-virtualenv venv
-. venv/bin/activate
-pip install -r requirements.txt
-deactivate
+#virtualenv venv
+#. venv/bin/activate
+#pip install -r requirements.txt
+#deactivate
 
 # Create empty build script
 if [ ! -f build.sh ]; then
-    echo "#!/bin/bash\n\n### This is your build script that will run at every gated checkin ###" > build.sh
+    echo "#!/bin/bash\n\n### This is your build script that will run at every gated checkin ###\n\ncd repository" > build.sh
 fi
 chmod +x build.sh
 
