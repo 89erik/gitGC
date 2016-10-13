@@ -10,7 +10,7 @@ The server needs to be exposed to the Internet through port 8080. The server sof
 * python2.7
 * python-virtualenv
 
-You also need a bitbucket repository (might work in github too, but I haven't tested that yet), and an ssh public key that can access the repository.
+You also need a bitbucket or github repository, and an ssh public key that can access the repository.
 
 ### Install and run the build server software
 On the server, run the following commands:
@@ -30,17 +30,17 @@ The following two lines must be included in a gitconfig on the developers' machi
 There are several ways to do this, but the best is perhaps to add it to a file .gitconfig on the root of your repository, and then having all the developers run the following command the first time they clone it.
 git config --local include.path ../.gitconfig
 
-You should also set up your bitbucket repository not to allow anyone to push to your official branch (e.g main), except for the user running on the build server.
+You should also set up your bitbucket/github repository not to allow anyone to push to your official branch (e.g main), except for the user running on the build server.
 
-The final step is to add a webhook on your bitbucket repo:
-* Open your repo on bitbucket
+The final step is to add a webhook on your bitbucket/github repo:
+* Open your repo on bitbucket/github
 * Go to settings -> Webhooks
-* Click Add webhooks
-    * Title: gitGC
-    * URL: http://(build server url):8080/pull
-    * Status: checked
-    * SSL/TLS: uncheked
-    * Triggers: Repository push
+* Click Add webhook
+    * URL/Payload URL: http://(build server url):8080/pull
+    * Status (bitbucket): checked
+    * SSL/TLS (bitbucket): uncheked
+    * Secret (github): empty
+    * Triggers: Repository push/Just the push event
 * Save
 
 ## How it works

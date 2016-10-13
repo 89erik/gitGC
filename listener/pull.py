@@ -54,9 +54,8 @@ def getlog(n="500"):
 @app.route('/pull', methods=['POST', 'GET'])
 def handle_pull():
     if request.method == 'POST':
-        branch = get_branch_name(request)
-        username = get_username(request)
-        print username
+        branch = get_from_request(request, "branch_name")
+        username = get_from_request(request, "username")
         try_merge(branch, username)
         res['payload'] = json.loads(request.form.get('payload',"{}"))
         res['headers'] = dict(request.headers.items())
@@ -75,19 +74,38 @@ def bad_request_handler(error):
     return response
 
 
-def get_branch_name(request):
-    try:
-        content = request.get_json()
-        return content["push"]["changes"][0]["new"]["name"]
-    except:
-        raise BadRequest("Branch name not provided")
+def username_github(payload):
+    return payload["pusher"]["name"]
 
-def get_username(request):
+def username_bitbucket(payload):
+    return payload["push"]["changes"][0]["commits"][0]["author"]["raw"]
+
+def branch_name_github(payload):
+    return payload["ref"][len("refs/heads/"):]
+
+def branch_name_bitbucket(payload):
+    return payload["push"]["changes"][0]["new"]["name"]
+
+payload_accessors = {
+    "github": { "username": username_github, "branch_name": branch_name_github },
+    "bitbucket": { "username": username_bitbucket, "branch_name": branch_name_bitbucket }
+}
+
+def repo_type(request):
+    user_agent = request.headers.get("User-Agent").lower()
+    if "bitbucket" in user_agent:
+        return "bitbucket"
+    if "github" in user_agent:
+        return "github"
+    raise Exception("Could not determine repo type")
+
+def get_from_request(request, field):
+    rt = repo_type(request)
     try:
-        content = request.get_json()
-        return content["push"]["changes"][0]["commits"][0]["author"]["raw"]
+        payload = request.get_json()
+        return payload_accessors[rt][field](payload)
     except:
-        return "unknown user"
+        raise BadRequest("%s not provided" % field)
 
 def try_merge(branch, username):
     if not re.match(BRANCH_PATTERN, branch):
@@ -100,7 +118,6 @@ def try_merge(branch, username):
         log.debug("Waiting in queue, current position is %d" % queue.index(me))
         time.sleep(5)
         pass
-
     log.debug("Starts merging %s" % branch)
     log.indent = 1
     git.clean()
