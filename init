@@ -1,9 +1,30 @@
 #! /bin/sh
 
 set -e
-
 cd listener
+
+# Install dependencies
 virtualenv venv
 . venv/bin/activate
 pip install -r requirements.txt
+deactivate
+
+# Create empty build script
+if [ ! -f build.sh ]; then
+    echo "#!/bin/bash\n\n### This is your build script that will run at every gated checkin ###" > build.sh
+fi
+chmod +x build.sh
+
+# Prepare work repository
+rm -rf repository 2> /dev/null
+mkdir -p repository
+cd repository
+git init
+if [ -z "$1" ]; then
+    echo "Remote repository not provided. Run the following commands to setup manually:"
+    echo "cd listener/repository"
+    echo "git remote add origin git@<repo-url>:<reponame>.git"
+else
+    git remote add origin $1
+fi
 
