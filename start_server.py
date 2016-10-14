@@ -1,6 +1,7 @@
 #! venv/bin/python
 
-from flask import Flask, Response, json, jsonify, request
+from flask import Flask, Response, json, jsonify, request, render_template
+from flask_bootstrap import Bootstrap
 from datetime import datetime, timedelta
 import time
 import re
@@ -21,6 +22,8 @@ BRANCH_PATTERN = re.compile(r"GC_\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}\.\d+")
 log.debug("---[ STARTING SERVER ]---")
 
 app = Flask(__name__)
+Bootstrap(app)
+
 res = {}
 
 @app.errorhandler(404)
@@ -33,7 +36,7 @@ def get_jobs(hours=None):
     if not hours: hours = 24
     since = datetime.now() - timedelta(hours=hours)
     jobs = db.find_jobs(since)
-    return jsonify({"jobs": jobs})
+    return render_template("jobs.html", jobs=jobs)
 
 @app.route("/progress", methods=['GET'])
 @app.route("/progress/<username>", methods=['GET'])

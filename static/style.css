@@ -1,0 +1,13 @@
+body {
+    margin:5px;
+}
+
+.bodybox {
+    margin: 0 auto;
+    width: 770px;
+}
+
+.navbarbox {
+    margin: 0 auto;
+    width: 800px;
+}

@@ -1,4 +1,6 @@
 Flask==0.10.1
+Flask-Bootstrap==3.2.0.2
+Jinja2==2.7.3
 argparse==1.2.1
 lockfile==0.9.1
 pyserial==2.7
