@@ -1,6 +1,7 @@
 #! venv/bin/python
 
 from flask import Flask, Response, json, jsonify, request
+from datetime import datetime, timedelta
 import time
 import re
 import os
@@ -10,6 +11,7 @@ import git_commands
 import bash
 import log
 import queue
+import db
 
 ROOT = os.path.dirname(os.path.realpath(__file__))
 BUILD_SCRIPT = ROOT + "/build.sh"
@@ -24,6 +26,14 @@ res = {}
 @app.errorhandler(404)
 def not_found(e):
     return "NOT FOUND: %s" % request.path, 404
+
+@app.route("/jobs", methods=["GET"])
+@app.route("/jobs/<int:hours>", methods=["GET"])
+def get_jobs(hours=None):
+    if not hours: hours = 24
+    since = datetime.now() - timedelta(hours=hours)
+    jobs = db.find_jobs(since)
+    return jsonify({"jobs": jobs})
 
 @app.route("/progress", methods=['GET'])
 @app.route("/progress/<username>", methods=['GET'])
@@ -129,7 +139,7 @@ def try_merge(branch, username):
         raise
     finally:
         git.delete(branch)
-        queue.go_to_next()
+        queue.finish()
         log.indent = 0
 
     log.debug("merge succesful")

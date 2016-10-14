@@ -1,12 +1,13 @@
 from collections import deque
+import db
 
 _queue = deque([])
 
 
 def add(branch, username):
-    me = { "username": username, "branch": branch, "progress": [], "log": [] }
-    _queue.append(me)
-    return me
+    job = db.create_job(branch, username)
+    _queue.append(job)
+    return job
 
 def get():
     return list(_queue)
@@ -20,9 +21,6 @@ def is_current(queue_item):
 def index(queue_item):
     return _queue.index(queue_item)
 
-def go_to_next():
-    finished = _queue[0]
-    with open(finished["branch"], "w") as f:
-        f.write(str(finished)) # TODO insert to database instead
-    _queue.popleft()
+def finish():
+    db.insert_job(_queue.popleft())
 

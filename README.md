@@ -9,6 +9,7 @@ The server needs to be exposed to the Internet through port 8080. The server sof
 * git
 * python2.7
 * python-virtualenv
+* mongodb-server
 
 You also need a bitbucket or github repository, and an ssh public key that can access the repository.
 
