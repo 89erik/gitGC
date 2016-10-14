@@ -1,5 +1,6 @@
 from datetime import datetime
 import bash
+import queue
 
 LOG_FILE = "log"
 indent = 0
@@ -8,7 +9,6 @@ def _write(msg):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     msg = "%s    %s%s" % (now, " " * indent * 4, msg)
     msg = msg.replace("\n", "\n" + (" " * (4 + len(now) + indent * 4)))
-
 
     print msg
     with open(LOG_FILE, "a") as log_file:
@@ -19,6 +19,10 @@ def debug(msg, extra_indent=0):
     indent += extra_indent
     _write(msg)
     indent -= extra_indent
+
+def info(msg, extra_indent=0):
+    queue.append_log(msg)
+    debug(msg, extra_indent)
 
 error = debug
 warning = debug

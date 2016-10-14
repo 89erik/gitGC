@@ -4,12 +4,12 @@ from flask import Flask, Response, json, jsonify, request
 import time
 import re
 import os
-from collections import deque
 
 from gc_exceptions import *
 import git_commands
 import bash
 import log
+import queue
 
 ROOT = os.path.dirname(os.path.realpath(__file__))
 BUILD_SCRIPT = ROOT + "/build.sh"
@@ -21,10 +21,6 @@ log.debug("---[ STARTING SERVER ]---")
 app = Flask(__name__)
 res = {}
 
-current_progress = 0
-
-queue = deque([])
-
 @app.errorhandler(404)
 def not_found(e):
     return "NOT FOUND: %s" % request.path, 404
@@ -32,8 +28,7 @@ def not_found(e):
 @app.route("/progress", methods=['GET'])
 @app.route("/progress/<username>", methods=['GET'])
 def progress(username=None):
-    print list(queue)
-    return jsonify({"queue": list(queue)})
+    return jsonify({"queue": queue.get()})
 
 @app.route("/status", methods=['GET'])
 def status():
@@ -111,32 +106,30 @@ def try_merge(branch, username):
     if not re.match(BRANCH_PATTERN, branch):
         raise Ignore("Ignoring push to branch %s" % branch)
     
-    me = { "username": username, "branch": branch, "progress": [] }
-    queue.append(me)
-
-    while queue[0] != me:
+    me = queue.add(branch, username)
+    while not queue.is_current(me):
         log.debug("Waiting in queue, current position is %d" % queue.index(me))
         time.sleep(5)
         pass
+
     log.debug("Starts merging %s" % branch)
     log.indent = 1
     git.clean()
     try:
         me["progress"].append("Getting sources")
         git.checkout(branch)
-        time.sleep(4)
         me["progress"].append("Building sources")
-        bash.execute(BUILD_SCRIPT)
-        time.sleep(4)
+        bash.execute(BUILD_SCRIPT, BuildFailure)
         me["progress"].append("Merging to %s" % MASTER)
         git.merge(branch)
+        me["progress"].append("Done")
     except:
         log.debug("Exception during merge, starting cleanup")
         git.clean()
         raise
     finally:
         git.delete(branch)
-        queue.popleft()
+        queue.go_to_next()
         log.indent = 0
 
     log.debug("merge succesful")

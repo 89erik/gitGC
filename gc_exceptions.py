@@ -35,5 +35,5 @@ class Ignore(GcException):
         GcException.__init__(self, message, 200, payload)
 
     def log_exception(self):
-        pass
+        log.debug(self.message)
 

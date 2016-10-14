@@ -2,7 +2,7 @@ from subprocess import Popen, PIPE
 import log
 
 def execute(command, failure):
-    log.debug(command)
+    log.info(command)
     rv = execute_inner(command)
     if rv["rc"] != 0:
         raise failure("Command \"%s\" failed: \n%s%s" % (command, rv["stdout"], rv["stderr"]))
