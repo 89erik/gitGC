@@ -1,6 +1,6 @@
 from datetime import datetime
 import bash
-import queue
+import jobs
 
 LOG_FILE = "log"
 indent = 0
@@ -21,7 +21,7 @@ def debug(msg, extra_indent=0):
     indent -= extra_indent
 
 def info(msg, extra_indent=0):
-    queue.append_log(msg)
+    jobs.append_log(msg)
     debug(msg, extra_indent)
 
 error = debug

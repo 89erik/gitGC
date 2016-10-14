@@ -10,7 +10,7 @@ from gc_exceptions import *
 import git_commands
 import bash
 import log
-import queue
+import jobs
 import db
 
 ROOT = os.path.dirname(os.path.realpath(__file__))
@@ -38,7 +38,7 @@ def get_jobs(hours=None):
 @app.route("/progress", methods=['GET'])
 @app.route("/progress/<username>", methods=['GET'])
 def progress(username=None):
-    return jsonify({"queue": queue.get()})
+    return jsonify({"queue": jobs.get()})
 
 @app.route("/status", methods=['GET'])
 def status():
@@ -61,7 +61,7 @@ def handle_pull():
     if request.method == 'POST':
         branch = get_from_request(request, "branch_name")
         username = get_from_request(request, "username")
-        try_merge(branch, username)
+        start_job(branch, username)
         res['payload'] = json.loads(request.form.get('payload',"{}"))
         res['headers'] = dict(request.headers.items())
         return ""
@@ -112,13 +112,13 @@ def get_from_request(request, field):
     except:
         raise BadRequest("%s not provided" % field)
 
-def try_merge(branch, username):
+def start_job(branch, username):
     if not re.match(BRANCH_PATTERN, branch):
         raise Ignore("Ignoring push to branch %s" % branch)
     
-    me = queue.add(branch, username)
-    while not queue.is_current(me):
-        log.debug("Waiting in queue, current position is %d" % queue.index(me))
+    me = jobs.add(branch, username)
+    while not jobs.is_current(me):
+        log.debug("Waiting in queue, current position is %d" % jobs.index(me))
         time.sleep(5)
         pass
 
@@ -139,7 +139,7 @@ def try_merge(branch, username):
         raise
     finally:
         git.delete(branch)
-        queue.finish()
+        jobs.finish_current()
         log.indent = 0
 
     log.debug("merge succesful")
