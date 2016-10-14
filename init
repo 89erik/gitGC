@@ -4,10 +4,10 @@ set -e
 cd listener
 
 # Install dependencies
-#virtualenv venv
-#. venv/bin/activate
-#pip install -r requirements.txt
-#deactivate
+virtualenv venv
+. venv/bin/activate
+pip install -r requirements.txt
+deactivate
 
 # Create empty build script
 if [ ! -f build.sh ]; then
