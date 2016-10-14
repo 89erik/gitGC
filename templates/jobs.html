@@ -2,25 +2,27 @@
 {% block title %} Jobs {% endblock %}
 
 {% block inner_content %}
-	<h1>Jobs</h1>
-	<table class="table">
-		<thead>
-			<tr>
-				<th>Username</th>
-				<th>Status</th>
-				<th>Started</th>
-				<th>Ended</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for job in jobs %}
-				<tr>
-					<td>{{job.username}}</td>
-					<td>{{job.progress | last}}</td>
-					<td>{{job.start}}</td>
-					<td>{{job.end}}</td>
-				</tr>
-			{% endfor %}
-		</tbody>
-	</table>
+    <h1>Jobs</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Started</th>
+                <th>Ended</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+                <tr>
+                    <td><a href="{{url_for('get_job', id=job.branch)}}">{{job.branch}}</a></td>
+                    <td>{{job.username}}</td>
+                    <td>{{job.progress | last}}</td>
+                    <td>{{job.start}}</td>
+                    <td>{{job.end}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

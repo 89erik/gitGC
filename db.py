@@ -16,9 +16,14 @@ def insert_job(job):
     _db.jobs.insert_one(job)
 
 def find_jobs(since):
-    jobs = _db.jobs.find({"start": {"$gt": since}})
-    def without_id(d):
-        del d["_id"]
-        return d
-    return map(without_id, jobs)
+    jobs = _db.jobs.find({"start": {"$gt": since}}).sort("start", pymongo.DESCENDING)
+    return map(_without_id, jobs)
 
+def find_job(branch):
+    job = _db.jobs.find_one({"branch": branch})
+    if not job: raise Exception("not found")
+    return _without_id(job)
+
+def _without_id(job):
+    del job["_id"]
+    return job

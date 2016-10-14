@@ -30,6 +30,11 @@ res = {}
 def not_found(e):
     return "NOT FOUND: %s" % request.path, 404
 
+@app.route("/job/<id>", methods=["GET"])
+def get_job(id):
+    return render_template("job.html", job=db.find_job(id))
+
+
 @app.route("/jobs", methods=["GET"])
 @app.route("/jobs/<int:hours>", methods=["GET"])
 def get_jobs(hours=None):

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %} {{job.branch}} {% endblock %}
+
+{% block inner_content %}
+	<h1>{{job.branch}}</h1>
+    By user <b>{{job.username}}</b><br>
+    Progress:
+    <ol>
+        {% for status in job.progress %}
+            <li>{{status}}</li>
+        {% endfor %}
+    </ol>
+    Ran from {{job.start}} to {{job.end}}<br><br>
+
+    GC command log:
+    <div class="logbox">
+        {% for line in job.log %}
+            {{line}}<br>
+        {% endfor %}
+    </div>
+{% endblock %}
