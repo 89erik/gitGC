@@ -91,7 +91,7 @@ def username_github(payload):
     return payload["pusher"]["name"]
 
 def username_bitbucket(payload):
-    return payload["push"]["changes"][0]["commits"][0]["author"]["raw"]
+    return payload["actor"]["username"]
 
 def branch_name_github(payload):
     return payload["ref"][len("refs/heads/"):]
