@@ -17,7 +17,7 @@ On the server, run the following commands:
 * git clone https://github.com/89erik/gitGC.git
 * cd gitGC
 * ./init "git@bitbucket.org:(your repository).git"
-* ./pull.py
+* ./start_server.py
 
 Write your commands for building your project into build.sh (a sample file is created by the init script). This script will run during each GC as the build step. This is initially set up as a bash script, but it can be changed to something else by editing the shebang (#!/bin/bash) at the first line of the script.
 
