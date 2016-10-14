@@ -1,2 +1,6 @@
 *.pyc
 *.swp
+venv
+log
+repository
+build.sh

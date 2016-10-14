@@ -5,7 +5,7 @@ gitGC is a light-weight GatedCheckin system implemented for (self)educational pu
 ## Setup
 
 ### Prepare build server
-The server needs to be exposed to the Internet through port 8080. The server software should run on most systems, but I have only testet it on Ubuntu 14. It needs the following packages installed:
+The server needs to be exposed to the Internet through port 8080. The server software itself is written in python, but relies on some UNIX-specifics such as bash. It should run on most systems, with som tweaking required for non-UNIX systems. It needs the following packages installed:
 * git
 * python2.7
 * python-virtualenv
@@ -17,15 +17,13 @@ On the server, run the following commands:
 * git clone https://github.com/89erik/gitGC.git
 * cd gitGC
 * ./init "git@bitbucket.org:(your repository).git"
-* cd listener
 * ./pull.py
 
-Write your commands for building your project into listener/build.sh. This script will run during each GC as the build step. This is initially set up as a bash script, but it can be changed to something else by editing the shebang (#!/bin/bash) at the first line of the script.
+Write your commands for building your project into build.sh (a sample file is created by the init script). This script will run during each GC as the build step. This is initially set up as a bash script, but it can be changed to something else by editing the shebang (#!/bin/bash) at the first line of the script.
 
 ### Configure your repository
-The following two lines must be included in a gitconfig on the developers' machines. (the name can be whatever you want).
-[alias]
-	pushtomaster = !git push origin HEAD:GC_$(date +%F_%H%M.%S.%N)
+The following line must be included in a gitconfig on the developers' machines. (the name can be whatever you want).
+[alias] pushtomaster = !git push origin HEAD:GC_$(date +%F_%H%M.%S.%N)
 
 There are several ways to do this, but the best is perhaps to add it to a file .gitconfig on the root of your repository, and then having all the developers run the following command the first time they clone it.
 git config --local include.path ../.gitconfig
