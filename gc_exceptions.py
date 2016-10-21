@@ -19,6 +19,13 @@ class BadRequest(GcException):
     def log_exception(self):
         log.warning("BadRequest: " + self.message)
 
+class NotFound(GcException):
+    def __init__(self, message, payload=None):
+        GcException.__init__(self, message, 404, payload)
+
+    def log_exception(self):
+        pass
+
 class BuildFailure(GcException):
     def __init__(self, message, payload=None):
         GcException.__init__(self, message, 409, payload)
