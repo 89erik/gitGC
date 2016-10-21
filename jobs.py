@@ -1,4 +1,5 @@
 from collections import deque
+from helpers import *
 import db
 
 _jobs = deque([])
@@ -7,6 +8,10 @@ def add(branch, username):
     job = db.create_job(branch, username)
     _jobs.append(job)
     return job
+
+def get_by_id(branch):
+    jobs = get()
+    return single(jobs, lambda j: j["branch"] == branch)
 
 def get():
     return list(_jobs)

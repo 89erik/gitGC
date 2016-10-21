@@ -1,6 +1,6 @@
 #! venv/bin/python
 
-from flask import Flask, Response, json, jsonify, request, render_template
+from flask import Flask, Response, json, jsonify, request, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap
 from datetime import datetime, timedelta
 import time
@@ -28,7 +28,10 @@ res = {}
 
 @app.route("/job/<id>", methods=["GET"])
 def get_job(id):
-    return render_template("job.html", job=db.find_job(id))
+    job = jobs.get_by_id(id)
+    if not job:
+        job = db.find_job(id)
+    return render_template("job.html", job=job)
 
 
 @app.route("/jobs", methods=["GET"])
@@ -39,10 +42,11 @@ def get_jobs(hours=None):
     jobs = db.find_jobs(since)
     return render_template("jobs.html", jobs=jobs)
 
+@app.route("/", methods=["GET"])
 @app.route("/progress", methods=['GET'])
 @app.route("/progress/<username>", methods=['GET'])
 def progress(username=None):
-    return jsonify({"queue": jobs.get()})
+    return render_template("jobs.html", jobs=jobs.get())
 
 @app.route("/status", methods=['GET'])
 def status():

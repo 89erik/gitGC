@@ -8,7 +8,7 @@ _db = _client.gitGC
 def create_job(branch, username):
     return { "username": username, 
              "branch": branch, 
-             "progress": [], 
+             "progress": ["In queue"], 
              "log": [], 
              "start":  datetime.now() }
 
