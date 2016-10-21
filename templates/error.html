@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %} {{name}} {% endblock %}
+
+{% block inner_content %}
+    <h1>{{code}} - {{name}}</h1>
+    {{payload.message}}
+{% endblock %}

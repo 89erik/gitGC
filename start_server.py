@@ -26,10 +26,6 @@ Bootstrap(app)
 
 res = {}
 
-@app.errorhandler(404)
-def not_found(e):
-    return "NOT FOUND: %s" % request.path, 404
-
 @app.route("/job/<id>", methods=["GET"])
 def get_job(id):
     return render_template("job.html", job=db.find_job(id))
@@ -77,6 +73,10 @@ def handle_pull():
         return Response(json.dumps(res, indent=None if request.is_xhr else 2),
                         mimetype='application/json')
 
+@app.errorhandler(404)
+def not_found(e):
+    return bad_request_handler(NotFound("Invalid URL"))
+
 @app.errorhandler(GcException)
 def bad_request_handler(error):
     error.log_exception()
@@ -84,7 +84,7 @@ def bad_request_handler(error):
     payload["time"] = time.asctime()
     response = jsonify(payload)
     response.status_code = error.status_code
-    return response
+    return render_template("error.html", code=error.status_code, name=type(error).__name__, payload=payload), error.status_code
 
 
 def username_github(payload):
