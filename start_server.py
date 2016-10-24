@@ -26,6 +26,13 @@ Bootstrap(app)
 
 res = {}
 
+@app.route("/add/<username>/<branch>")
+def add_fake_job(username, branch):
+    job = jobs.add(branch, username)
+    print jobs.get()
+    return redirect(url_for("get_jobs"))
+
+
 @app.route("/job/<id>", methods=["GET"])
 def get_job(id):
     job = jobs.get_by_id(id)
@@ -43,9 +50,9 @@ def get_jobs(hours=None):
     return render_template("jobs.html", jobs=jobs)
 
 @app.route("/", methods=["GET"])
-@app.route("/progress", methods=['GET'])
-@app.route("/progress/<username>", methods=['GET'])
-def progress(username=None):
+@app.route("/current_jobs", methods=['GET'])
+@app.route("/current_jobs/<username>", methods=['GET'])
+def get_current_jobs(username=None):
     return render_template("jobs.html", jobs=jobs.get())
 
 @app.route("/status", methods=['GET'])
