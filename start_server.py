@@ -3,6 +3,8 @@
 from flask import Flask, Response, json, jsonify, request, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap
 from datetime import datetime, timedelta
+import hmac
+import hashlib
 import time
 import re
 import os
@@ -20,6 +22,7 @@ MASTER = "master"
 git = git_commands.Repository(ROOT + "/repository", MASTER)
 BRANCH_PATTERN = re.compile(r"GC_\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}\.\d+")
 log.debug("---[ STARTING SERVER ]---")
+HOOK_KEY = "hemmelig" # TODO get from file
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -74,6 +77,8 @@ def getlog(n="500"):
 @app.route('/pull', methods=['POST', 'GET'])
 def handle_pull():
     if request.method == 'POST':
+        if not autheticate(request):
+            raise Unauthorized()
         branch = get_from_request(request, "branch_name")
         username = get_from_request(request, "username")
         start_job(branch, username)
@@ -97,6 +102,12 @@ def bad_request_handler(error):
     response.status_code = error.status_code
     return render_template("error.html", code=error.status_code, name=type(error).__name__, payload=payload), error.status_code
 
+def authenticate(request):
+    digester = hmac.new(KEY, request.data, hashlib.sha1)
+    requestHash = "sha1=%s" % digester.hexdigest()
+    requestSecret = request.headers["X-Hub-Signature"]
+    diff = sum(i != j for i, j in zip(requestHash, requestSecret))
+    return diff == 0
 
 def username_github(payload):
     return payload["pusher"]["name"]

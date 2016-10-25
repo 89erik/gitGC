@@ -26,6 +26,13 @@ class NotFound(GcException):
     def log_exception(self):
         pass
 
+class Unauthorized(GcException):
+    def __init__(self, message, payload=None):
+        GcException.__init__(self, message, 401, payload)
+
+    def log_exception(self):
+        pass
+
 class BuildFailure(GcException):
     def __init__(self, message, payload=None):
         GcException.__init__(self, message, 409, payload)
