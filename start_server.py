@@ -8,6 +8,7 @@ import hashlib
 import time
 import re
 import os
+#import config
 
 from gc_exceptions import *
 import git_commands
@@ -16,16 +17,14 @@ import log
 import jobs
 import db
 
-ROOT = os.path.dirname(os.path.realpath(__file__))
-BUILD_SCRIPT = ROOT + "/build.sh"
-MASTER = "master"
-git = git_commands.Repository(ROOT + "/repository", MASTER)
-BRANCH_PATTERN = re.compile(r"GC_\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}\.\d+")
-log.debug("---[ STARTING SERVER ]---")
-HOOK_KEY = "hemmelig" # TODO get from file
-
 app = Flask(__name__)
 Bootstrap(app)
+app.config.from_object("config")
+
+ROOT = os.path.dirname(os.path.realpath(__file__))
+BUILD_SCRIPT = ROOT + "/build.sh"
+git = git_commands.Repository(ROOT + "/repository", app.config["MASTER"])
+
 
 res = {}
 
@@ -77,7 +76,7 @@ def getlog(n="500"):
 @app.route('/pull', methods=['POST', 'GET'])
 def handle_pull():
     if request.method == 'POST':
-        if not autheticate(request):
+        if not authenticate(request):
             raise Unauthorized()
         branch = get_from_request(request, "branch_name")
         username = get_from_request(request, "username")
@@ -103,7 +102,7 @@ def bad_request_handler(error):
     return render_template("error.html", code=error.status_code, name=type(error).__name__, payload=payload), error.status_code
 
 def authenticate(request):
-    digester = hmac.new(KEY, request.data, hashlib.sha1)
+    digester = hmac.new(app.config["HOOK_KEY"], request.data, hashlib.sha1)
     requestHash = "sha1=%s" % digester.hexdigest()
     requestSecret = request.headers["X-Hub-Signature"]
     diff = sum(i != j for i, j in zip(requestHash, requestSecret))
@@ -143,7 +142,7 @@ def get_from_request(request, field):
         raise BadRequest("%s not provided" % field)
 
 def start_job(branch, username):
-    if not re.match(BRANCH_PATTERN, branch):
+    if not re.match(app.config["BRANCH_PATTERN"], branch):
         raise Ignore("Ignoring push to branch %s" % branch)
     
     me = jobs.add(branch, username)
@@ -175,4 +174,5 @@ def start_job(branch, username):
     log.debug("merge succesful")
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=8080)
+    log.debug("---[ STARTING SERVER ]---")
