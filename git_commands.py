@@ -24,7 +24,10 @@ def _get(command):
     return bash.execute_inner(command)["stdout"]
 
 def _merge_step(command):
-    bash.execute(self.prefix + command, MergeFailure)
+    bash.execute(command, MergeFailure)
+
+def _general_action(command):
+    bash.execute(command, GcException)
 
 def _stderr(command):
     rv = bash.execute_inner(command)
@@ -49,6 +52,7 @@ class Repository(object):
     
     @remote.setter
     def remote(self, remote):
+        print("setting remote to: %s" % remote)
         active_repo = self.path
         backup_repo = active_repo + ".backup"
 
@@ -69,8 +73,8 @@ class Repository(object):
         return self._remote_problems
 
     def init(self, remote):
-        self._execute("init", GcException)
-        self._execute(ADD_REMOTE % remote, GcException)
+        self._execute("init", _general_action)
+        self._execute(ADD_REMOTE % remote, _general_action)
 
     def checkout(self, branch):
         self._execute(FETCH)
