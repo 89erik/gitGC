@@ -5,7 +5,7 @@ gitGC is a light-weight GatedCheckin system implemented for (self)educational pu
 ## Setup
 
 ### Prepare build server
-The server needs to be exposed to the Internet through port 8080. The server software itself is written in python, but relies on some UNIX-specifics such as bash. It should run on most systems, with som tweaking required for non-UNIX systems. It needs the following packages installed:
+The server needs to be exposed to the Internet through port 8080. The server software itself is written in python, but relies on some UNIX-specifics such as bash. It needs the following packages installed:
 * git
 * python2.7
 * python-virtualenv

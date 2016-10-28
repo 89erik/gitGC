@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %} Configuration {% endblock %}
+
+{% block inner_content %}
+    <h1>Configuration</h1>
+    <form action="" method="post">
+        Repo type
+        <input type="text" name="repo_type"><br>
+        Remote
+        <input type="text" name="remote" value={{config.remote}}><br>
+        {{status.remote_problems}}
+        <input type="submit" value="OK">
+    </form>
+
+{% endblock %}

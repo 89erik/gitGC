@@ -8,6 +8,7 @@ def execute(command, failure):
         raise failure("Command \"%s\" failed: \n%s%s" % (command, rv["stdout"], rv["stderr"]))
 
 def execute_inner(command):
+    log.debug(command)
     p = Popen(command.split(" "), stdout=PIPE, stderr=PIPE)
     rv = p.communicate()
     return { 'stdout': rv[0], 'stderr': rv[1], 'rc': p.returncode }

@@ -8,7 +8,6 @@ import hashlib
 import time
 import re
 import os
-#import config
 
 from gc_exceptions import *
 import git_commands
@@ -23,6 +22,7 @@ app.config.from_object("config")
 
 ROOT = os.path.dirname(os.path.realpath(__file__))
 BUILD_SCRIPT = ROOT + "/build.sh"
+SUPPORTED_REPO_TYPES = ["github", "bitbucket"]
 git = git_commands.Repository(ROOT + "/repository", app.config["MASTER"])
 
 
@@ -78,8 +78,8 @@ def handle_pull():
     if request.method == 'POST':
         if not authenticate(request):
             raise Unauthorized()
-        branch = get_from_request(request, "branch_name")
-        username = get_from_request(request, "username")
+        branch = get_from_complex_request(request, "branch_name")
+        username = get_from_complex_request(request, "username")
         start_job(branch, username)
         res['payload'] = json.loads(request.form.get('payload',"{}"))
         res['headers'] = dict(request.headers.items())
@@ -87,6 +87,25 @@ def handle_pull():
     else:
         return Response(json.dumps(res, indent=None if request.is_xhr else 2),
                         mimetype='application/json')
+
+@app.route("/config", methods=["GET"])
+def get_config():
+    status = { "remote_problems": git.remote_problems() }
+    config = { "remote": git.remote }
+    return render_template("config.html", status=status, config=config)
+
+@app.route("/config", methods=["POST"])
+def set_config():
+    remote = get_from_form(request, "remote")
+    repo_type = get_from_form(request, "repo_type", str.lower)
+
+    if repo_type not in SUPPORTED_REPO_TYPES and False: # This is ignored for now
+        msg = "Repo type '%s' not supported. Supported types are %s" % (repo_type, SUPPORTED_REPO_TYPES)
+        raise BadRequest(msg)
+    git.remote = remote
+
+    return redirect(url_for("get_config"))
+
 
 @app.errorhandler(404)
 def not_found(e):
@@ -133,7 +152,12 @@ def repo_type(request):
         return "github"
     raise Exception("Could not determine repo type")
 
-def get_from_request(request, field):
+def get_from_form(request, field, convert=lambda x:x):
+    if not field in request.form:
+        raise BadRequest("%s not provided" % field)
+    return convert(str(request.form[field]))
+
+def get_from_complex_request(request, field):
     rt = repo_type(request)
     try:
         payload = request.get_json()
