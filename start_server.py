@@ -11,17 +11,16 @@ import os
 
 from gc_exceptions import *
 import git_commands
-import bash
 import log
 import jobs
 import db
+import agent
 
 app = Flask(__name__)
 Bootstrap(app)
 app.config.from_object("config")
 
 ROOT = os.path.dirname(os.path.realpath(__file__))
-BUILD_SCRIPT = ROOT + "/build.sh"
 SUPPORTED_REPO_TYPES = ["github", "bitbucket"]
 git = git_commands.Repository(ROOT + "/repository", app.config["MASTER"])
 
@@ -174,28 +173,7 @@ def start_job(branch, username):
         log.debug("Waiting in queue, current position is %d" % jobs.index(me))
         time.sleep(5)
         pass
-
-    log.debug("Starts merging %s" % branch)
-    log.indent = 1
-    git.clean()
-    try:
-        me["progress"].append("Getting sources")
-        git.checkout(branch)
-        me["progress"].append("Building sources")
-        bash.execute(BUILD_SCRIPT, BuildFailure)
-        me["progress"].append("Merging to %s" % MASTER)
-        git.merge(branch)
-        me["progress"].append("Done")
-    except:
-        log.debug("Exception during merge, starting cleanup")
-        git.clean()
-        raise
-    finally:
-        git.delete(branch)
-        jobs.finish_current()
-        log.indent = 0
-
-    log.debug("merge succesful")
+    agent.execute_job(me)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
