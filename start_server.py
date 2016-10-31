@@ -25,6 +25,7 @@ BUILD_SCRIPT = ROOT + "/build.sh"
 SUPPORTED_REPO_TYPES = ["github", "bitbucket"]
 git = git_commands.Repository(ROOT + "/repository", app.config["MASTER"])
 
+BRANCH_PATTERN = re.compile(app.config["BRANCH_PATTERN"])
 
 res = {}
 
@@ -59,8 +60,7 @@ def get_current_jobs(username=None):
 
 @app.route("/status", methods=['GET'])
 def status():
-    rv = git.status()
-    return Response(rv["stdout"], mimetype="text/plain")
+    return Response(git.status(), mimetype="text/plain")
 
 @app.route("/tree", methods=['GET'])
 def tree():
@@ -166,7 +166,7 @@ def get_from_complex_request(request, field):
         raise BadRequest("%s not provided" % field)
 
 def start_job(branch, username):
-    if not re.match(app.config["BRANCH_PATTERN"], branch):
+    if not re.match(BRANCH_PATTERN, branch):
         raise Ignore("Ignoring push to branch %s" % branch)
     
     me = jobs.add(branch, username)
