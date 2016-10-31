@@ -120,6 +120,8 @@ def bad_request_handler(error):
     return render_template("error.html", code=error.status_code, name=type(error).__name__, payload=payload), error.status_code
 
 def authenticate(request):
+    if not app.config["HOOK_KEY"]:
+        return True
     digester = hmac.new(app.config["HOOK_KEY"], request.data, hashlib.sha1)
     requestHash = "sha1=%s" % digester.hexdigest()
     requestSecret = request.headers["X-Hub-Signature"]
