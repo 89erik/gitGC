@@ -9,6 +9,7 @@ def create_job(branch, username):
     return { "username": username, 
              "branch": branch, 
              "progress": ["In queue"], 
+             "success": False,
              "log": [], 
              "start":  datetime.now() }
 

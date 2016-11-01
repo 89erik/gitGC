@@ -1,5 +1,5 @@
 from start_server import app, git, ROOT
-from gc_exceptions import BuildFailure
+from gc_exceptions import BuildFailure, GcException
 import jobs
 import log
 import bash
@@ -48,8 +48,10 @@ def execute_job(job):
         execute_step(Fetch(job))
         execute_step(Build(job))
         execute_step(Merge(job))
-    except:
+        job["success"] = True
+    except GcException as e:
         log.debug("Exception during merge, starting cleanup")
+        log.info(e.message)
         git.clean()
         raise
     finally:

@@ -3,7 +3,16 @@
 
 {% block inner_content %}
 	<h1>{{job.branch}}</h1>
-    By user <b>{{job.username}}</b><br>
+    By user: <b>{{job.username}}</b><br>
+    Status: <b>
+    {% if job.success %} 
+        Accepted
+    {% elif job.success == None %} 
+        In progress
+    {% else %}
+        Rejected
+    {% endif %}
+    </b><br>
     Progress:
     <ol>
         {% for status in job.progress %}

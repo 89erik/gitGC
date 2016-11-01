@@ -18,7 +18,15 @@
                 <tr>
                     <td><a href="{{url_for('get_job', id=job.branch)}}">{{job.branch}}</a></td>
                     <td>{{job.username}}</td>
-                    <td>{{job.progress | last}}</td>
+                    <td>
+                        {% if job.success %} 
+                            Accepted
+                        {% elif job.success == None %} 
+                            {{job.progress | last}}
+                        {% else %}
+                            Rejected
+                        {% endif %} 
+                    </td>
                     <td>{{job.start}}</td>
                     <td>{{job.end}}</td>
                 </tr>
