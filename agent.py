@@ -6,50 +6,37 @@ import bash
 
 BUILD_SCRIPT = ROOT + "/build.sh"
 
-class JobStep:
-    def __init__(self, job, description):
-        self.job = job
+class job_step(object):
+    def __init__(self, description):
         self.description = description
+    def __call__(self, f):
+        def f_wrapper(job):
+            job["progress"].append(self.description)
+            f(job)
+        return f_wrapper
 
-    def log(self):
-        print self.description
-        self.job["progress"].append(self.description)
+@job_step("Fetching sources")
+def _fetch(job):
+    git.fetch()
+    git.merge(job["branch"], git.master)
 
-class Fetch(JobStep):
-    def __init__(self, job):
-        JobStep.__init__(self, job, "Fetching sources")
+@job_step("Building sources")
+def _build(job):
+    git.checkout(job["branch"])
+    bash.execute(BUILD_SCRIPT, BuildFailure)
 
-    def execute(self):
-        git.fetch()
-        git.merge(self.job["branch"], git.master)
-
-class Build(JobStep):
-    def __init__(self, job):
-        JobStep.__init__(self, job, "Building sources")
-
-    def execute(self):
-        git.checkout(self.job["branch"])
-        bash.execute(BUILD_SCRIPT, BuildFailure)
-
-class Merge(JobStep):
-    def __init__(self, job):
-        JobStep.__init__(self, job, "Merging to %s" % app.config["MASTER"])
-
-    def execute(self):
-        git.merge_and_push(self.job["branch"])
-
-def execute_step(step):
-    step.log()
-    step.execute()
+@job_step("Merging to %s" % app.config["MASTER"])
+def _merge(job):
+    git.merge_and_push(job["branch"])
 
 def execute_job(job):
     log.debug("Starts merging %s" % job["branch"])
     log.indent = 1
     git.clean()
     try:
-        execute_step(Fetch(job))
-        execute_step(Build(job))
-        execute_step(Merge(job))
+        _fetch(job)
+        _build(job)
+        _merge(job)
         job["success"] = True
     except GcException as e:
         log.debug("Exception during merge, starting cleanup")
