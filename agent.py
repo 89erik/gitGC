@@ -1,4 +1,4 @@
-from start_server import app, git, ROOT
+from global_data import app, git, ROOT
 from gc_exceptions import BuildFailure, DeployFailure, GcException
 import jobs
 import log

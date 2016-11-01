@@ -29,3 +29,8 @@ def index(job):
 def finish_current():
     db.insert_job(_jobs.popleft())
 
+def get_next():
+    if len(_jobs) > 0:
+        return _jobs[0]
+    else:
+        return None

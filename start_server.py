@@ -1,6 +1,8 @@
 #! venv/bin/python
+import global_data
+from global_data import app, git
 
-from flask import Flask, Response, json, jsonify, request, render_template, redirect, url_for
+from flask import Response, json, jsonify, request, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap
 from datetime import datetime, timedelta
 import hmac
@@ -15,16 +17,14 @@ import log
 import jobs
 import db
 import agent
+import worker
 
-app = Flask(__name__)
+log.debug("---[ STARTING SERVER ]---")
 Bootstrap(app)
-app.config.from_object("config")
-
-ROOT = os.path.dirname(os.path.realpath(__file__))
 SUPPORTED_REPO_TYPES = ["github", "bitbucket"]
-git = git_commands.Repository(ROOT + "/repository", app.config["MASTER"])
-
 BRANCH_PATTERN = re.compile(app.config["BRANCH_PATTERN"])
+
+worker.start()
 
 res = {}
 
@@ -79,7 +79,7 @@ def handle_pull():
             raise Unauthorized()
         branch = get_from_complex_request(request, "branch_name")
         username = get_from_complex_request(request, "username")
-        start_job(branch, username)
+        register_job(branch, username)
         res['payload'] = json.loads(request.form.get('payload',"{}"))
         res['headers'] = dict(request.headers.items())
         return ""
@@ -166,17 +166,10 @@ def get_from_complex_request(request, field):
     except:
         raise BadRequest("%s not provided" % field)
 
-def start_job(branch, username):
+def register_job(branch, username):
     if not re.match(BRANCH_PATTERN, branch):
         raise Ignore("Ignoring push to branch %s" % branch)
-    
-    me = jobs.add(branch, username)
-    while not jobs.is_current(me):
-        log.debug("Waiting in queue, current position is %d" % jobs.index(me))
-        time.sleep(5)
-        pass
-    agent.execute_job(me)
+    jobs.add(branch, username)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
-    log.debug("---[ STARTING SERVER ]---")
+    app.run(host='0.0.0.0', port=8080, use_reloader=False)
