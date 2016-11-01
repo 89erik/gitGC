@@ -20,13 +20,15 @@ class Fetch(JobStep):
         JobStep.__init__(self, job, "Fetching sources")
 
     def execute(self):
-        git.checkout(self.job["branch"])
+        git.fetch()
+        git.merge(self.job["branch"], git.master)
 
 class Build(JobStep):
     def __init__(self, job):
         JobStep.__init__(self, job, "Building sources")
 
     def execute(self):
+        git.checkout(self.job["branch"])
         bash.execute(BUILD_SCRIPT, BuildFailure)
 
 class Merge(JobStep):
@@ -34,7 +36,7 @@ class Merge(JobStep):
         JobStep.__init__(self, job, "Merging to %s" % app.config["MASTER"])
 
     def execute(self):
-        git.merge(self.job["branch"])
+        git.merge_and_push(self.job["branch"])
 
 def execute_step(step):
     step.log()
@@ -55,7 +57,10 @@ def execute_job(job):
         git.clean()
         raise
     finally:
-        git.delete(job["branch"])
+        try:
+            git.delete_local_branch(job["branch"])
+            git.delete_remote_branch(job["branch"])
+        except: pass
         jobs.finish_current()
         log.indent = 0
     log.debug("merge succesful")

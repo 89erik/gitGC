@@ -43,6 +43,7 @@ class Repository(object):
         self.path = path
         self._remote = None
         self._remote_problems = None
+        self.branch = None
 
     @property
     def remote(self):
@@ -77,23 +78,34 @@ class Repository(object):
         self._execute(ADD_REMOTE % remote, _general_action)
 
     def checkout(self, branch):
+        if self.branch != branch:
+            self._execute(CHECKOUT % branch)
+            self.branch = branch
+
+    def fetch(self):
         self._execute(FETCH)
-        self._execute(CHECKOUT % self.master)
+        self.checkout(self.master)
         self._execute(MERGE % "origin/"+self.master)
-        self._execute(CHECKOUT % branch)
-        self._execute(MERGE % self.master)
-        
-    def merge(self, branch):
-        self._execute(CHECKOUT % self.master)
-        self._execute(MERGE % branch)
+
+    def merge_and_push(self, branch):
+        self.merge(self.master, branch)
+        self.push()
+    
+    def merge(self, target_branch, source_branch):
+        self.checkout(target_branch)
+        self._execute(MERGE % source_branch)
+
+    def push(self):
+        self.checkout(self.master)
         self._execute(PUSH % self.master)
 
-    def delete(self, branch):
-        self._execute(CHECKOUT % self.master)
-        try:
-            self._execute(DELETE_BRANCH_LOCAL % branch)
-            self._execute(DELETE_BRANCH_REMOTE % branch)
-        except: pass
+    def delete_remote_branch(self, branch):
+        self.checkout(self.master)
+        self._execute(DELETE_BRANCH_REMOTE % branch)
+
+    def delete_local_branch(self, branch):
+        self.checkout(self.master)
+        self._execute(DELETE_BRANCH_LOCAL % branch)
 
     def clean(self):
         self._execute(RESET)
