@@ -14,6 +14,12 @@ if [ ! -f build.sh ]; then
 fi
 chmod +x build.sh
 
+# Create empty deploy script
+if [ ! -f deploy.sh ]; then
+    echo "#!/bin/bash\n\n### This is the script for deploying your application ###\n\ncd repository" > deploy.sh
+fi
+chmod +x deploy.sh
+
 # Prepare work repository
 rm -rf repository 2> /dev/null
 mkdir -p repository

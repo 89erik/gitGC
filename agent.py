@@ -1,10 +1,11 @@
 from start_server import app, git, ROOT
-from gc_exceptions import BuildFailure, GcException
+from gc_exceptions import BuildFailure, DeployFailure, GcException
 import jobs
 import log
 import bash
 
 BUILD_SCRIPT = ROOT + "/build.sh"
+DEPLOY_SCRIPT = ROOT + "/deploy.sh"
 
 class job_step(object):
     def __init__(self, description):
@@ -29,6 +30,11 @@ def _build(job):
 def _merge(job):
     git.merge_and_push(job["branch"])
 
+@job_step("Deploying")
+def _deploy(job):
+    _build(job)
+    bash.execute(DEPLOY_SCRIPT, DeployFailure)
+
 def execute_job(job):
     log.debug("Starts merging %s" % job["branch"])
     log.indent = 1
@@ -45,7 +51,6 @@ def execute_job(job):
         raise
     finally:
         try:
-            git.delete_local_branch(job["branch"])
             git.delete_remote_branch(job["branch"])
         except: pass
         jobs.finish_current()

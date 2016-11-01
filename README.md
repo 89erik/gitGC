@@ -20,7 +20,7 @@ On the server, run the following commands:
 * ./init "git@bitbucket.org:(your repository).git"
 * ./start_server.py
 
-Write your commands for building your project into build.sh (a sample file is created by the init script). This script will run during each GC as the build step. This is initially set up as a bash script, but it can be changed to something else by editing the shebang (#!/bin/bash) at the first line of the script.
+Write your commands for building your project into build.sh (a sample file is created by the init script). This script will run during each GC as the build step. This is initially set up as a bash script, but it can be changed to something else by editing the shebang (#!/bin/bash) at the first line of the script. Enter the commands for deploying your code in deploy.sh, this file can assume that the repository contains a fresh build.
 
 ### Configure your repository
 The following line must be included in a gitconfig on the developers' machines. (the name can be whatever you want).

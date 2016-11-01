@@ -4,4 +4,6 @@ venv
 log
 repository
 build.sh
+deploy.sh
 db
+.trash
