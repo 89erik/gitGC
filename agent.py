@@ -45,6 +45,7 @@ def execute_job(job):
         _merge(job)
         job["success"] = True
     except GcException as e:
+        job["success"] = False
         log.debug("Exception during merge, starting cleanup")
         log.info(e.message)
         git.clean()
