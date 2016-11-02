@@ -34,17 +34,23 @@ class BuildFailure(GcException):
     def __init__(self, message, payload=None):
         GcException.__init__(self, message, 409, payload)
     def log_exception(self):
-        log.warning("BuildFailure: " + self.message)
+        log.info("BuildFailure: " + self.message)
 
 class DeployFailure(GcException):
     def __init__(self, message, payload=None):
         GcException.__init__(self, message, 409, payload)
     def log_exception(self):
-        log.warning("DeployFailure: " + self.message)
+        log.info("DeployFailure: " + self.message)
 
 class MergeFailure(BuildFailure):
     def log_exception(self):
-        log.warning("MergeFailure: " + self.message)
+        log.info("MergeFailure: " + self.message)
+
+class Cancellation(GcException):
+    def __init__(self, message, payload=None):
+        GcException.__init__(self, message, 200, payload)
+    def log_exception(self):
+        log.info("Job cancelled during '%s'" % self.message)
 
 class Ignore(GcException):
     def __init__(self, message, payload=None):

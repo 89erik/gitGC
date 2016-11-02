@@ -29,6 +29,12 @@ def index(job):
 def finish_current():
     db.insert_job(_jobs.popleft())
 
+def cancel(job):
+    _jobs.remove(job)
+    job["success"] = False
+    job["progress"].append("Cancelled")
+    db.insert_job(job)
+
 def get_next():
     if len(_jobs) > 0:
         return _jobs[0]

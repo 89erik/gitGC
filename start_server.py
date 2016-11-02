@@ -57,6 +57,17 @@ def get_jobs(hours=None):
 def get_current_jobs(username=None):
     return render_template("jobs.html", jobs=jobs.get())
 
+@app.route("/cancel/<branch>", methods=["POST"])
+def cancel_job(branch):
+    job = jobs.get_by_id(branch)
+    if not job:
+        raise NotFound("Current job %s does not exist" % branch)
+    if jobs.is_current(job):
+        agent.cancel()
+    else:
+        jobs.cancel()
+    return redirect(url_for("get_job", id=branch))
+
 @app.route("/status", methods=['GET'])
 def status():
     return Response(git.status(), mimetype="text/plain")

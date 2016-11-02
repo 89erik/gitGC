@@ -1,20 +1,41 @@
 from global_data import app, git, ROOT
-from gc_exceptions import BuildFailure, DeployFailure, GcException
+from gc_exceptions import BuildFailure, DeployFailure, Cancellation, GcException
 import jobs
 import log
 import bash
 
+import time
+
 BUILD_SCRIPT = ROOT + "/build.sh"
 DEPLOY_SCRIPT = ROOT + "/deploy.sh"
+_cancelled = False
+
+def cancel():
+    global _cancelled
+    _cancelled = True
+    timeout = 10.0
+    step = 0.2
+    while _cancelled:
+        time.sleep(step)
+        timeout -= step
+        if timeout <= 0.0:
+            log.debug("waiting for cancellation to take effect...")
+            timeout = 10
+            step = 1
 
 class job_step(object):
     def __init__(self, description):
         self.description = description
     def __call__(self, f):
-        def f_wrapper(job):
+        def decorator(job):
+            global _cancelled
+            if _cancelled:
+                job["progress"].append("Cancelled")
+                job["success"] = False
+                raise Cancellation()
             job["progress"].append(self.description)
             f(job)
-        return f_wrapper
+        return decorator
 
 @job_step("Fetching sources")
 def _fetch(job):
@@ -36,6 +57,7 @@ def _deploy(job):
     bash.execute(DEPLOY_SCRIPT, DeployFailure)
 
 def execute_job(job):
+    global _cancelled
     log.debug("Starts merging %s" % job["branch"])
     log.indent = 1
     git.clean()
@@ -46,8 +68,8 @@ def execute_job(job):
         job["success"] = True
     except GcException as e:
         job["success"] = False
-        log.debug("Exception during merge, starting cleanup")
-        log.info(e.message)
+        log.debug("Job was aborted, starting cleanup")
+        e.log_exception()
         git.clean()
         raise
     finally:
@@ -55,6 +77,7 @@ def execute_job(job):
             git.delete_remote_branch(job["branch"])
         except: pass
         jobs.finish_current()
+        _cancelled = False
         log.indent = 0
     log.debug("merge succesful")
 
