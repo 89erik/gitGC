@@ -49,7 +49,7 @@ def get_jobs(hours=None):
     if not hours: hours = 24
     since = datetime.now() - timedelta(hours=hours)
     jobs = db.find_jobs(since)
-    return render_template("jobs.html", jobs=jobs)
+    return render_template("jobs.html", jobs=jobs, hours=hours)
 
 @app.route("/", methods=["GET"])
 @app.route("/current_jobs", methods=['GET'])
