@@ -1,6 +1,7 @@
 import pymongo
 from datetime import datetime
 import gc_exceptions
+import log
 
 _client = pymongo.MongoClient("localhost", 8081)
 _db = _client.gitGC
@@ -25,6 +26,13 @@ def find_job(branch):
     job = _db.jobs.find_one({"branch": branch})
     if not job: raise gc_exceptions.NotFound("Job for branch '%s' does not exist" % branch)
     return _without_id(job)
+
+def delete_job_if_exist(branch):
+    if not branch: raise Exception("Bad call to db")
+    res = _db.jobs.delete_many({"branch": branch})
+    if res.deleted_count:
+        log.debug("Deleted %d jobs matching branch '%s'" % (res.deleted_count, branch))
+
 
 def _without_id(job):
     del job["_id"]

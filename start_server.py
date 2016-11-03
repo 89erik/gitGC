@@ -84,19 +84,32 @@ def getlog(n="500"):
     return Response(log_content, mimetype="text/plain")
 
 @app.route('/pull', methods=['POST', 'GET'])
-def handle_pull():
+def pull_hook():
     if request.method == 'POST':
         if not authenticate(request):
             raise Unauthorized()
         branch = get_from_complex_request(request, "branch_name")
         username = get_from_complex_request(request, "username")
-        register_job(branch, username)
+        if not re.match(BRANCH_PATTERN, branch):
+            raise Ignore("Ignoring push to branch %s" % branch)
+        jobs.add(branch, username)
         res['payload'] = json.loads(request.form.get('payload',"{}"))
         res['headers'] = dict(request.headers.items())
         return ""
     else:
         return Response(json.dumps(res, indent=None if request.is_xhr else 2),
                         mimetype='application/json')
+
+@app.route("/pull/<username>/<branch>", methods=['POST'])
+def pull_manually(username, branch):
+    if not username or not branch or branch == app.config["MASTER"]:
+        raise BadRequest("username and branch must be set and branch cannot be master")
+    db.delete_job_if_exist(branch)
+    jobs.add(branch, username)
+    if "redirect" in request.form:
+        return redirect(request.form["redirect"])
+    else:
+        return redirect(url_for("get_current_jobs"))
 
 @app.route("/config", methods=["GET"])
 def get_config():
@@ -176,11 +189,6 @@ def get_from_complex_request(request, field):
         return payload_accessors[rt][field](payload)
     except:
         raise BadRequest("%s not provided" % field)
-
-def register_job(branch, username):
-    if not re.match(BRANCH_PATTERN, branch):
-        raise Ignore("Ignoring push to branch %s" % branch)
-    jobs.add(branch, username)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, use_reloader=False)
