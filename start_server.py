@@ -2,12 +2,11 @@
 import global_data
 from global_data import app, git
 
-from flask import Response, json, jsonify, request, render_template, redirect, url_for
+from flask import Response, request, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap
 from datetime import datetime, timedelta
 import hmac
 import hashlib
-import time
 import re
 import os
 
@@ -25,15 +24,6 @@ SUPPORTED_REPO_TYPES = ["github", "bitbucket"]
 BRANCH_PATTERN = re.compile(app.config["BRANCH_PATTERN"])
 
 worker.start()
-
-res = {}
-
-@app.route("/add/<username>/<branch>")
-def add_fake_job(username, branch):
-    job = jobs.add(branch, username)
-    print jobs.get()
-    return redirect(url_for("get_jobs"))
-
 
 @app.route("/job/<id>", methods=["GET"])
 def get_job(id):
@@ -83,22 +73,16 @@ def getlog(n="500"):
     log_content = log.get_lines(n)
     return Response(log_content, mimetype="text/plain")
 
-@app.route('/pull', methods=['POST', 'GET'])
+@app.route('/pull', methods=['POST'])
 def pull_hook():
-    if request.method == 'POST':
-        if not authenticate(request):
-            raise Unauthorized()
-        branch = get_from_complex_request(request, "branch_name")
-        username = get_from_complex_request(request, "username")
-        if not re.match(BRANCH_PATTERN, branch):
-            raise Ignore("Ignoring push to branch %s" % branch)
-        jobs.add(branch, username)
-        res['payload'] = json.loads(request.form.get('payload',"{}"))
-        res['headers'] = dict(request.headers.items())
-        return ""
-    else:
-        return Response(json.dumps(res, indent=None if request.is_xhr else 2),
-                        mimetype='application/json')
+    if not authenticate(request):
+        raise Unauthorized()
+    branch = get_from_complex_request(request, "branch_name")
+    username = get_from_complex_request(request, "username")
+    if not re.match(BRANCH_PATTERN, branch):
+        raise Ignore("Ignoring push to branch %s" % branch)
+    jobs.add(branch, username)
+    return ""
 
 @app.route("/pull/<username>/<branch>", methods=['POST'])
 def pull_manually(username, branch):
@@ -129,7 +113,6 @@ def set_config():
 
     return redirect(url_for("get_config"))
 
-
 @app.errorhandler(404)
 def not_found(e):
     return bad_request_handler(NotFound("Invalid URL"))
@@ -138,9 +121,6 @@ def not_found(e):
 def bad_request_handler(error):
     error.log_exception()
     payload = error.to_dict()
-    payload["time"] = time.asctime()
-    response = jsonify(payload)
-    response.status_code = error.status_code
     return render_template("error.html", code=error.status_code, name=type(error).__name__, payload=payload), error.status_code
 
 def authenticate(request):

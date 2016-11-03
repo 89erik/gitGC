@@ -16,7 +16,7 @@ def _listen():
             else:
                 time.sleep(1)
         except Exception as e:
-            log.error("%s in worker thread:\n%s" % (type(e), str(e)))
+            log.error("%s in worker thread:\n%s" % (type(e).__name__, str(e)))
 
 def start():
     global worker

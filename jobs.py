@@ -18,7 +18,7 @@ def get():
 
 def append_log(msg):
     if len(_jobs) > 0:
-        _jobs[0]["log"].append(msg)
+        _jobs[0]["log"].extend(msg.split("\n"))
 
 def is_current(job):
     return _jobs[0] == job

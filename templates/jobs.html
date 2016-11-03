@@ -3,7 +3,9 @@
 
 {% block inner_content %}
     <h1>Jobs</h1>
+    {% if hours %}
     Showing jobs for the last {{hours}} hours.
+    {% endif %}
     <table class="table">
         <thead>
             <tr>
@@ -28,8 +30,10 @@
                             Rejected
                         {% endif %} 
                     </td>
-                    <td>{{job.start}}</td>
-                    <td>{{job.end}}</td>
+                    <td>{{job.start.strftime("%Y-%m-%d %H:%M:%S")}}</td>
+                    {% if "end" in job %}
+                    <td>{{job.end.strftime("%Y-%m-%d %H:%M:%S")}}</td>
+                    {% endif %}
                 </tr>
             {% endfor %}
         </tbody>

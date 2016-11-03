@@ -68,8 +68,8 @@ def execute_job(job):
         job["success"] = True
     except GcException as e:
         job["success"] = False
-        log.debug("Job was aborted, starting cleanup")
         e.log_exception()
+        log.debug("Job was aborted, starting cleanup")
         git.clean()
         raise
     finally:
